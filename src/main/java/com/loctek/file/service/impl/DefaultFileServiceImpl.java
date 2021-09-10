@@ -35,14 +35,13 @@ public class DefaultFileServiceImpl implements IfileService {
 
     @Override
     public String save(File file) throws Exception {
-        String contentType = Optional.ofNullable(FileUtil.getExtension(file.getName()))
-                .map(this::switchType).orElse("");
+        String contentType = Optional.ofNullable(FileUtil.getExtension(file.getName())).orElse("");
         return gridFsTemplate.store(new FileInputStream(file), file.getName(), contentType).toHexString();
     }
 
     @Override
     public String save(File file, String filename) throws Exception {
-        String contentType = Optional.ofNullable(FileUtil.getExtension(filename)).map(this::switchType).orElse("");
+        String contentType = Optional.ofNullable(FileUtil.getExtension(filename)).orElse("");
         return gridFsTemplate.store(new FileInputStream(file), filename, contentType).toHexString();
     }
 
@@ -50,13 +49,13 @@ public class DefaultFileServiceImpl implements IfileService {
     public String save(File file, String filename, Map<String, Object> metaData) throws Exception {
         Document document = new Document();
         metaData.forEach(document::append);
-        String contentType = Optional.ofNullable(FileUtil.getExtension(filename)).map(this::switchType).orElse("");
+        String contentType = Optional.ofNullable(FileUtil.getExtension(filename)).orElse("");
         return gridFsTemplate.store(new FileInputStream(file), filename, contentType, document).toHexString();
     }
 
     @Override
     public String save(InputStream inputStream, String filename) {
-        String contentType = Optional.ofNullable(FileUtil.getExtension(filename)).map(this::switchType).orElse("");
+        String contentType = Optional.ofNullable(FileUtil.getExtension(filename)).orElse("");
         return gridFsTemplate.store(inputStream, filename, contentType).toHexString();
     }
 
@@ -64,7 +63,7 @@ public class DefaultFileServiceImpl implements IfileService {
     public String save(InputStream inputStream, String filename, Map<String, Object> metaData) {
         Document document = new Document();
         metaData.forEach(document::append);
-        String contentType = Optional.ofNullable(FileUtil.getExtension(filename)).map(this::switchType).orElse("");
+        String contentType = Optional.ofNullable(FileUtil.getExtension(filename)).orElse("");
         return gridFsTemplate.store(inputStream, filename, contentType, document).toHexString();
     }
 
@@ -205,18 +204,5 @@ public class DefaultFileServiceImpl implements IfileService {
     @Override
     public GridFsResource getStream(String id) {
         return gridFsTemplate.getResource(this.findOneById(id));
-    }
-
-    /**
-     * jpg图片类型在http头contentType中对应"image/jpeg"或"application/x-jpg"，为了下载统一格式，将jpg转成jpeg存储
-     * @param suffix
-     * @return
-     */
-    public String switchType(String suffix) {
-        if (Objects.equals(suffix, FileUtil.JPG_TYPE)) {
-            return FileUtil.JPEG_TYPE;
-        } else {
-            return suffix;
-        }
     }
 }

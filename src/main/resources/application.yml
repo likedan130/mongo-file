@@ -1,8 +1,9 @@
 spring:
   data:
     mongodb:
-#      username: username
-#      password: 'password'
-#      host: host
-#      port: port
-#      database: database
+      uri: 'mongodb://loctekroot:IhL8shL8qW23J4bz4zmksu7nOtxTMQ3mTTrJqzt9doNjB0QBjR1elfcctTswRfPNki989p48HB6dI9r5jfKipw==@loctekroot.mongo.cosmos.azure.cn:10255/oms-dev?ssl=true&retrywrites=false&replicaSet=globaldb&maxIdleTimeMS=120000'
+#      username: loctekroot
+#      password: 'IhL8shL8qW23J4bz4zmksu7nOtxTMQ3mTTrJqzt9doNjB0QBjR1elfcctTswRfPNki989p48HB6dI9r5jfKipw=='
+#      host: loctekroot.mongo.cosmos.azure.cn
+#      port: 10255
+#      database: oms-dev

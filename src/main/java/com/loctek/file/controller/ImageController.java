@@ -1,18 +1,20 @@
 package com.loctek.file.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.loctek.file.constant.ContentTypeEnum;
+import com.loctek.file.util.FileUtil;
+import com.loctek.file.vo.ResultMsg;
 import com.loctek.file.vo.*;
 import com.mongodb.client.gridfs.model.GridFSFile;
 import com.loctek.file.service.IimageService;
-import net.coobird.thumbnailator.Thumbnails;
+import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.mongodb.gridfs.GridFsResource;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.OutputStream;
-import java.util.Optional;
 
 /**
  * @author wneck130@gmail.com
@@ -27,6 +29,40 @@ public class ImageController {
     @Autowired
     @Qualifier("image")
     IimageService imageService;
+
+    /**
+     * 根据ID预览图片
+     * @param id
+     * @param response
+     * @throws Exception
+     */
+    @GetMapping("/preview")
+    public void preview(@RequestParam("id") String id, HttpServletResponse response) throws Exception {
+        //gridfs存储文件以document+bucket形式保存，故会分成两个部分分别保存在files和chunks
+        //进行文件操作时要进行两次操作取出file的索引内容和流内容
+        //先查询文件是否存在
+        GridFSFile gridFSFile = imageService.findOneById(id);
+        if (gridFSFile == null) {
+            ObjectMapper objectMapper = new ObjectMapper();
+            ResultMsg result = ResultMsg.error("文件不存在!!!");
+            response.setContentType("text/json;charset=utf-8");
+            //塞到HttpServletResponse中返回给前端
+            response.getWriter().write(objectMapper.writeValueAsString(result));
+            return;
+        }
+        //取出文件对应的流内容
+        GridFsResource gridFsResource = imageService.getStream(gridFSFile);
+        //预处理文件名
+        String filename = gridFSFile.getFilename();
+        String fileType = gridFsResource.getContentType();
+        filename = FileUtil.beautifulName(filename, fileType);
+        //文件名中存在中文时会有乱码问题，进行url编码处理，并且制定浏览器的解码方式
+        response.addHeader("Cache-Control", "no-cache");
+        //对图片做特殊contentType处理
+        response.setContentType(ContentTypeEnum.getContentType(fileType));
+        IOUtils.copy(imageService.getStream(gridFSFile).getInputStream(), response.getOutputStream());
+        response.flushBuffer();
+    }
 
     @PostMapping("/compress")
     public void compress(@RequestBody CompressVo compressVo, HttpServletResponse response) throws Exception {
